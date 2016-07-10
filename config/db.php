@@ -2,8 +2,8 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=5756a03358c7e.gz.cdb.myqcloud.com;dbname=auto_bet',
+    'dsn' => 'mysql:host=5776abbd2ed93.gz.cdb.myqcloud.com:5730;dbname=auto_bet',
     'username' => 'cdb_outerroot',
-    'password' => 'well123!',
+    'password' => 'well_123',
     'charset' => 'utf8',
 ];
