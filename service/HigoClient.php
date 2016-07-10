@@ -8,6 +8,7 @@
 namespace app\service;
 
 use app\service\MyFunction;
+
 class HigoClient {
 
     private static $loginUrl = '';
@@ -73,7 +74,7 @@ class HigoClient {
      * 获取上期开奖结果，本期，赔率
      * @param $string
      */
-    private static function isGetSscInfo($string){
+    private static function isGetSscInfo($string) {
         $old = MyFunction::InterceptString($string);
     }
 
@@ -81,7 +82,7 @@ class HigoClient {
      * 购买
      * @param sring购买
      */
-    public static function buy($data=''){
+    public static function buy($data = '') {
 
     }
 }
