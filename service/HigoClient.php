@@ -25,6 +25,10 @@ class HigoClient {
         return self::isLoginSuccess($response);
     }
 
+    public static function logout(){
+        $response = HttpClient::curl(self::$logoutUrl);
+        return self::isLoginSuccess($response);
+    }
     private static function isLoginSuccess(Array $array) {
         return $array['code'] == 0;
     }
