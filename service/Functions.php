@@ -2,6 +2,7 @@
 namespace app\service;
 use yii;
 use app\models\Log;
+use app\service\Config;
 
 class Functions{
 
@@ -24,4 +25,16 @@ class Functions{
     public static function test(){
         print_r("dd");
     }
+
+    /**
+     * 获取config中的值
+     *  $key
+     */
+    public static function getAttrValue($key){
+        $config = Config::getInstance();
+        $res = $config->find()->where(['c_name'=>$key])->asArray()->all();
+        return $res['c_value'];
+    }
+
+
 }

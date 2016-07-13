@@ -8,14 +8,18 @@
 namespace app\service;
 
 use app\service\MyFunction;
-
+use yii;
 class HigoClient {
 
-    private static $indexUrl = '';
-    private static $loginUrl = '';
-    private static $logoutUrl = '';
-    private static $userInfoUrl = '';
-    private static $captionUrl = '';
+    private static $indexUrl = '';      //登录页
+    private static $loginUrl = '';      //登录请求url
+    private static $logoutUrl = '';     //退出url
+    private static $userInfoUrl = '';   //用户信息url
+    private static $captionUrl = '';    //验证码url
+    private static $ballUrl = '';          //页面url
+    private static $buyUrl = '';          //页面url
+    private static $v = '';          //购买参数
+    private static $price = [];          //购买参数
 
     public static function getCookie(){
         HttpClient::curl(self::$indexUrl);
@@ -45,11 +49,15 @@ class HigoClient {
 
     /**
      * 拼接url
-     * @param $ip string  ip地址
-     * @param $type string url类型
+     * $line
      */
-    public static function setUrl($ip, $type) {
+    public static function setUrl($line='LINE_1') {
 
+        $ip = Functions::getAttrValue($line);
+        $loginUrl = Functions::getAttrValue('URL_LOGIN');
+        $userInfoUrl = Functions::getAttrValue('URL_LEFT_INFO');
+        self::$loginUrl= 'http://'.$ip.$loginUrl;
+        self::$userInfoUrl= 'http://'.$ip.$userInfoUrl;
     }
 
     /**
@@ -66,9 +74,18 @@ class HigoClient {
      * @return bool
      */
     private static function isGetLeftInfoSuccess($string) {
-        $userName = MyFunction::InterceptString($string, '{"account":"', '","credit"');    //用户名
-        $edu = MyFunction::InterceptString($string, ',"credit":"', '","re_credit"');    //信用额度
-        $yue = MyFunction::InterceptString($string, ',"total_amount":"', '","odds_refresh"');    //信用余额
+        $arr=['account','success','true','credit'];
+        if(self::stringExist($string,$arr)){//成功
+            Functions::saveLog(yii::$app->message['leftInfo']['userInfoGetSuccess']);
+            $userName = Functions::InterceptString($string, '{"account":"', '","credit"');    //用户名
+            $edu = Functions::InterceptString($string, ',"credit":"', '","re_credit"');    //信用额度
+            $yue = Functions::InterceptString($string, ',"total_amount":"', '","odds_refresh"');    //信用余额
+            return false;
+            //存数据库
+        }else{  //失败
+            Functions::saveLog(yii::$app->message['leftInfo']['userInfoGetFailed']);
+            return false;
+        }
     }
 
     /**
@@ -89,7 +106,19 @@ class HigoClient {
      * @param $string
      */
     private static function isGetSscInfo($string) {
-        $old = MyFunction::InterceptString($string);
+        $arr=['integrate','success','true','changlong'];
+        if(self::stringExist($string,$arr)){//成功
+            Functions::saveLog(yii::$app->message['sscList']['sscListGetSuccess']);
+            $json = Functions::InterceptString($string, '"integrate":', ',"changlong"');    //赔率json
+            $oldNum = Functions::InterceptString($string, '"timesold":"', '","resultnum"');    //上期期数
+            $oldRes = Functions::InterceptString($string, 'resultnum":', ',"status');    //上期结果
+            $nowNum = Functions::InterceptString($string, 'timesnow":"', '","timeclose');    //本期期数
+            self::$v = Functions::InterceptString($string, 'version_number":"', '","game_limit');    //购买参数
+            //存数据库
+        }else{  //失败
+            Functions::saveLog(yii::$app->message['sscList']['sscListGetFailed']);
+            return false;
+        }
     }
 
     /**
@@ -97,6 +126,31 @@ class HigoClient {
      * @param sring购买
      */
     public static function buy($data = '') {
+        if(){//判断是赔率是否购买
+            Functions::saveLog(yii::$app->message['Buy']['buying']);
+            $response = HttpClient::curl(self::$buyUrl, $data);
+            $arr = ['suc_orders','success','true'];
+            if(){
 
+            }
+        }else{
+            Functions::saveLog(yii::$app->message['Buy']['noBuy']);
+            return false;
+        }
+    }
+
+    /**
+     * 判断字符串是否有某些字符串
+     */
+    private static function stringExist($string,$arr=false){
+        if(!$arr){
+            return false;
+        }
+        foreach($arr as $row){
+            if(!strstr($string,$row)){
+                return false;
+            }
+        }
+        return true;
     }
 }
