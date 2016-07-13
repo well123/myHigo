@@ -1,0 +1,9 @@
+Server Started : 2016-07-13 10:47:28
+Master socket  : Resource id #63
+Listening on   : localhost port 8080
+
+< Websocket opened!
+> Resource id:68 Websocket opened!
+Resource id #68 DISCONNECTED!
+< 
+> Resource id:68 

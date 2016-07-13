@@ -11,11 +11,21 @@ use app\service\MyFunction;
 
 class HigoClient {
 
+    private static $indexUrl = '';
     private static $loginUrl = '';
     private static $logoutUrl = '';
     private static $userInfoUrl = '';
+    private static $captionUrl = '';
 
-    public static function login() {
+    public static function getCookie(){
+        HttpClient::curl(self::$indexUrl);
+    }
+
+    public static function getCaption(){
+        return HttpClient::downLoadCaptcha(self::$captionUrl);
+    }
+
+    public static function login($caption) {
         /**
          * $userInfo = array('name'=>'','password'=>'','caption'=>'');
          * 需要你来写获取用户登录名和密码的方法

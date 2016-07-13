@@ -31,6 +31,9 @@ class WebSocket{
      * @param $p int port
      */
     public function __construct($a, $p){
+        error_reporting(E_ALL);
+        set_time_limit(0);
+        ob_implicit_flush();
         if($a == 'localhost'){
             $this->address = $a;
         }else if(preg_match('/^[\d\.]*$/is', $a)){
@@ -101,7 +104,7 @@ class WebSocket{
         $msg = $this->wrap($msg.'2131');
         @socket_write($client, $msg, strlen($msg));
         $this->log("! ".strlen($msg));
-        return socket_strerror(socket_last_error());
+        return socket_strerror(socket_last_error($client));
     }
 
     /**
@@ -241,7 +244,7 @@ class WebSocket{
         return true;
     }
 
-    private function getUserBySocket($socket){
+    public function getUserBySocket($socket){
         $found = NULL;
         foreach($this->users as $user){
             if($user->socket == $socket){

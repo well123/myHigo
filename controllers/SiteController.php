@@ -1,17 +1,17 @@
 <?php
-
 namespace app\controllers;
 
+use app\models\Log;
 use yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
-class SiteController extends Controller
-{
-    public function behaviors()
-    {
+
+class SiteController extends Controller{
+
+    public function behaviors(){
         return [
             'access' => [
                 'class' => AccessControl::className(),
@@ -33,35 +33,31 @@ class SiteController extends Controller
         ];
     }
 
-    public function actions()
-    {
+    public function actions(){
         return [
             'error' => [
                 'class' => 'yii\web\ErrorAction',
             ],
             'captcha' => [
                 'class' => 'yii\captcha\CaptchaAction',
-                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
+                'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : NULL,
             ],
         ];
     }
 
-    public function actionIndex()
-    {
+    public function actionIndex(){
         if(Yii::$app->user->isGuest){
             return $this->actionLogin();
         }
         return $this->render('index');
     }
 
-    public function actionLogin()
-    {
-        if (!Yii::$app->user->isGuest) {
+    public function actionLogin(){
+        if(!Yii::$app->user->isGuest){
             return $this->goHome();
         }
-
         $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
+        if($model->load(Yii::$app->request->post()) && $model->login()){
             return $this->goBack();
         }
         return $this->render('login', [
@@ -69,19 +65,15 @@ class SiteController extends Controller
         ]);
     }
 
-    public function actionLogout()
-    {
+    public function actionLogout(){
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
 
-    public function actionContact()
-    {
+    public function actionContact(){
         $model = new ContactForm();
-        if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
+        if($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])){
             Yii::$app->session->setFlash('contactFormSubmitted');
-
             return $this->refresh();
         }
         return $this->render('contact', [
@@ -89,8 +81,13 @@ class SiteController extends Controller
         ]);
     }
 
-    public function actionAbout()
-    {
+    public function actionLogs(){
+        $log = new Log();
+        $logs = $log->find()->orderBy('id DESC')->limit(100)->asArray()->all();
+        echo json_encode($logs);
+    }
+
+    public function actionAbout(){
         return $this->render('about');
     }
 }

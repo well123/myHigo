@@ -9,13 +9,31 @@ namespace app\service;
 
 use yii;
 use app\models\User;
+
+require_once yii::$app->basePath.'\vendor\caption\Caption.php';
+
 class Login{
 
-    public static function login(){
+    public static function getCookie(){
         Functions::saveLog(yii::$app->message['startLogin']);
+        HigoClient::getCookie();
+    }
+
+    public static function getScore(){
+        $caption = new \Caption();
+        return $caption->CJY_GetScore();
+    }
+    private static function getCaption(){
+        $captionImg = HigoClient::getCaption();
+        $caption = new \Caption();
+        return $caption->CJY_RecognizeBytes($captionImg);
+    }
+
+    public static function login(){
         $loginTimes = 1;
         while($loginTimes <= yii::$app->params['retryLoginTime']){
-            if(HigoClient::login()){
+            $caption = self::getCaption();
+            if(HigoClient::login($caption)){
                 Functions::saveLog(yii::$app->message['loginSuccess']);
                 break;
             }else{
