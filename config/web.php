@@ -1,7 +1,7 @@
 <?php
 
 $params = require(__DIR__ . '/params.php');
-
+$message = require(__DIR__. '/message.php');
 $config = [
     'id' => 'basic',
     'basePath' => dirname(__DIR__),
@@ -48,6 +48,7 @@ $config = [
         */
     ],
     'params' => $params,
+    'message' => $message,
 ];
 
 if (YII_ENV_DEV) {
