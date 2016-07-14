@@ -23,17 +23,12 @@ class Login{
         $caption = new \Caption();
         return $caption->CJY_GetScore();
     }
-    private static function getCaption(){
-        $captionImg = HigoClient::getCaption();
-        $caption = new \Caption();
-        return $caption->CJY_RecognizeBytes($captionImg);
-    }
+
 
     public static function login(){
         $loginTimes = 1;
         while($loginTimes <= yii::$app->params['retryLoginTime']){
-            $caption = self::getCaption();
-            if(HigoClient::login($caption)){
+            if(HigoClient::login()){
                 Functions::saveLog(yii::$app->message['loginSuccess']);
                 break;
             }else{

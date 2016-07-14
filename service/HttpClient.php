@@ -22,23 +22,24 @@ class HttpClient{
         return self::$cookie;
     }
 
-    public static function curl($url, Array $data = array()){
-        return self::curlFetch($url, $data);
+    public static function curl($url, Array $data = array(), $referer = ''){
+        return self::curlFetch($url, $data, $referer);
     }
 
     public static function downLoadCaptcha($url){
         $time = time();
-        file_put_contents(Yii::$app->basePath.'/tmp/image/'.$time.'.jpg', file_get_contents($url));
+        file_put_contents(Yii::$app->basePath.'/tmp/image/'.$time.'.jpg', self::curl($url));
         return Yii::$app->basePath.'/tmp/image/'.$time.'.jpg';
     }
 
-    private static function curlFetch($url, Array $data = array(), $referer = ""){
+    private static function curlFetch($url, Array $data = [], $referer = ""){
         $result = '';
         while(true){
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 返回字符串，而非直接输出
             curl_setopt($ch, CURLOPT_HEADER, false);   // 不返回header部分
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 120);   // 设置socket连接超时时间
+            curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
             if(!empty($referer)){
                 curl_setopt($ch, CURLOPT_REFERER, $referer);   // 设置引用网址
             }
@@ -50,6 +51,8 @@ class HttpClient{
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
             }
+            var_dump($url);
+            var_dump(http_build_query($data));
             set_time_limit(120); // 设置自己服务器超时时间
             $result = curl_exec($ch);
             curl_close($ch);

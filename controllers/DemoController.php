@@ -27,8 +27,13 @@ class DemoController extends Controller{
         exit;
     }
 
+    public function actionGetIndex(){
+        HigoClient::getIndex();
+    }
     public function actionLogin(){
-        var_dump(Login::getScore());
+        HigoClient::getIndex();
+        var_dump(Login::login());
+        HigoClient::leftInfo();
 //        Login::login();
     }
     public function actionSocket(){
