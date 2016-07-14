@@ -36,5 +36,11 @@ class Functions{
         return $res['c_value'];
     }
 
+    //获取13位时间戳
+    public static function getMillisecond() {
+        list($t1, $t2) = explode(' ', microtime());
+        return (float)sprintf('%.0f', (floatval($t1) + floatval($t2)) * 1000);
+    }
+
 
 }
