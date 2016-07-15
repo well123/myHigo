@@ -12,7 +12,7 @@ $config = [
             'cookieValidationKey' => '20134b76c75d0ba2889d4d1d3fd17c8c',
         ],
         'cache' => [
-            'class' => 'yii\caching\FileCache',
+            'class' => 'yii\caching\ApcCache',
         ],
         'user' => [
             'identityClass' => 'app\models\User',

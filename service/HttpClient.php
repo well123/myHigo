@@ -51,8 +51,6 @@ class HttpClient{
                 curl_setopt($ch, CURLOPT_POST, true);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
             }
-            var_dump($url);
-            var_dump(http_build_query($data));
             set_time_limit(120); // 设置自己服务器超时时间
             $result = curl_exec($ch);
             curl_close($ch);
@@ -63,8 +61,8 @@ class HttpClient{
         return $result;
     }
 
-    private static function isDropped($response){
-        $log = Log::getInstance();
+    private static function isDropped(){
+        Log::getInstance();
         return false;
     }
 }
