@@ -2,6 +2,8 @@
 namespace app\controllers;
 
 use app\models\Log;
+use app\service\GenerateUrlService;
+use app\service\HttpClient;
 use app\service\InitService;
 use yii;
 use yii\filters\AccessControl;
@@ -28,18 +30,14 @@ class SiteController extends Controller{
             ],
             'verbs' => [
                 'class' => VerbFilter::className(),
-                'actions' => [
-                    'logout' => ['post'],
-                ],
+                'actions' => ['logout' => ['post'],],
             ],
         ];
     }
 
     public function actions(){
         return [
-            'error' => [
-                'class' => 'yii\web\ErrorAction',
-            ],
+            'error' => ['class' => 'yii\web\ErrorAction',],
             'captcha' => [
                 'class' => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : NULL,
@@ -48,12 +46,11 @@ class SiteController extends Controller{
     }
 
     public function actionIndex(){
-        Record::insertRecord();exit;
         if(Yii::$app->user->isGuest){
             return $this->actionLogin();
         }
-        InitService::run();exit;
-        return $this->render('index');
+        InitService::run();
+        return $this->render('log');
     }
 
     public function actionLogin(){
@@ -64,9 +61,7 @@ class SiteController extends Controller{
         if($model->load(Yii::$app->request->post()) && $model->login()){
             return $this->goBack();
         }
-        return $this->render('login', [
-            'model' => $model,
-        ]);
+        return $this->render('login', ['model' => $model,]);
     }
 
     public function actionLogout(){
@@ -80,9 +75,7 @@ class SiteController extends Controller{
             Yii::$app->session->setFlash('contactFormSubmitted');
             return $this->refresh();
         }
-        return $this->render('contact', [
-            'model' => $model,
-        ]);
+        return $this->render('contact', ['model' => $model,]);
     }
 
     public function actionLogs(){
@@ -93,5 +86,17 @@ class SiteController extends Controller{
 
     public function actionAbout(){
         return $this->render('about');
+    }
+
+    public function actionChangeStatus(){
+        InitService::changeSystemStatus();
+    }
+
+    public function actionGetStatus(){
+        exit(json_encode(InitService::getSystemStatus()));
+    }
+
+    public function actionGetContent(){
+        file_put_contents('ed.txt',HttpClient::curl(GenerateUrlService::getUserLeftInfo()));
     }
 }

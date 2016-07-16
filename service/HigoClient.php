@@ -9,6 +9,7 @@ namespace app\service;
 
 use yii;
 use app\models\Record;
+
 class HigoClient{
 
     private static $userInfoUrl = '';
@@ -43,12 +44,12 @@ class HigoClient{
             'systemversion' => InitService::getConfig('systemversion'),
             'u' => $randomStr
         ];
+        self::$verifyValue =
+            explode('_', HttpClient::curl(GenerateUrlService::getLoginKeyUrl().http_build_query($verifyParams)));
         $captionParams = [
             'systemversion' => InitService::getConfig('systemversion'),
             't' => self::$verifyValue[0]
         ];
-        self::$verifyValue =
-            explode('_', HttpClient::curl(GenerateUrlService::getLoginKeyUrl().http_build_query($verifyParams)));
         return HttpClient::downLoadCaptcha(GenerateUrlService::getCaptionUrl().http_build_query($captionParams));
     }
 
@@ -124,7 +125,12 @@ class HigoClient{
      * @return bool
      */
     private static function isGetLeftInfoSuccess($string){
-        $arr = ['account', 'success', 'true', 'credit'];
+        $arr = [
+            'account',
+            'success',
+            'true',
+            'credit'
+        ];
         if(self::stringExist($string, $arr)){//成功
             Functions::saveLog(Yii::$app->message['leftInfo']['userInfoGetSuccess']);
             self::$userName = Functions::InterceptString($string, '{"account":"', '","credit"');    //用户名
@@ -159,7 +165,12 @@ class HigoClient{
      * @param $string
      */
     private static function isGetSscInfo($string){
-        $arr = ['integrate', 'success', 'true', 'changlong'];
+        $arr = [
+            'integrate',
+            'success',
+            'true',
+            'changlong'
+        ];
         if(self::stringExist($string, $arr)){//成功
             Functions::saveLog(Yii::$app->message['sscList']['sscListGetSuccess']);
             self::$json = Functions::InterceptString($string, '"integrate":', ',"changlong"');    //赔率json
@@ -184,35 +195,39 @@ class HigoClient{
             Functions::saveLog(Yii::$app->message['Buy']['buying']);
             //查询本期是否购买
             $buy = array(
-                't'=>'',
-                'v'=>self::$v
+                't' => '',
+                'v' => self::$v
             );
             $response = HttpClient::curl(self::$buyUrl, $buy);
-            $arr = ['suc_orders', 'success', 'true'];
+            $arr = [
+                'suc_orders',
+                'success',
+                'true'
+            ];
             if(self::stringExist($response, $arr)){  //成功
                 Functions::saveLog(Yii::$app->message['Buy']['buySuccess']);
-//                $data['user'] = self::$userName;
-//                $data['edu'] = self::$edu;
-//                $data['yue'] = self::$yue;
-//                $data['one_price'] = self::$one_price;
-//                $data['one'] = self::$one;
-//                $data['two_price'] = self::$two_price;
-//                $data['two'] = self::$two;
-//                $data['three_price'] = self::$three_price;
-//                $data['three'] = self::$three;
-//                $data['four_price'] = self::$four_price;
-//                $data['four'] = self::$four;
-//                $data['five_price'] = self::$five_price;
-//                $data['five'] = self::$five;
-//                $data['all_price'] = self::$all_price;
-//                $data['all'] = self::$all;
-//                $data['json'] = self::$json;
-//                $data['record_time'] = self::$record_time;
-//                $data['old'] = self::$old;
-//                $data['old_res'] = self::$old_res;
-//                $data['now'] = self::$now;
-//                $data['res_time'] = self::$res_time;
-//                Record::insertRecord($data);
+                //                $data['user'] = self::$userName;
+                //                $data['edu'] = self::$edu;
+                //                $data['yue'] = self::$yue;
+                //                $data['one_price'] = self::$one_price;
+                //                $data['one'] = self::$one;
+                //                $data['two_price'] = self::$two_price;
+                //                $data['two'] = self::$two;
+                //                $data['three_price'] = self::$three_price;
+                //                $data['three'] = self::$three;
+                //                $data['four_price'] = self::$four_price;
+                //                $data['four'] = self::$four;
+                //                $data['five_price'] = self::$five_price;
+                //                $data['five'] = self::$five;
+                //                $data['all_price'] = self::$all_price;
+                //                $data['all'] = self::$all;
+                //                $data['json'] = self::$json;
+                //                $data['record_time'] = self::$record_time;
+                //                $data['old'] = self::$old;
+                //                $data['old_res'] = self::$old_res;
+                //                $data['now'] = self::$now;
+                //                $data['res_time'] = self::$res_time;
+                //                Record::insertRecord($data);
             }else{  //购买失败
             }
         }else{

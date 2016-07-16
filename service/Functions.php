@@ -1,5 +1,6 @@
 <?php
 namespace app\service;
+
 use yii;
 use app\models\Log;
 
@@ -21,16 +22,12 @@ class Functions{
         $log->save();
     }
 
-    public static function test(){
-        print_r("dd");
-    }
-
-
-    //获取13位时间戳
-    public static function getMillisecond() {
+    /**
+     * 获取13位时间戳
+     * @return float 时间戳
+     */
+    public static function getMillisecond(){
         list($t1, $t2) = explode(' ', microtime());
         return (float)sprintf('%.0f', (floatval($t1) + floatval($t2)) * 1000);
     }
-
-
 }

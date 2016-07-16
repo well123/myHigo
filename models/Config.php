@@ -10,6 +10,10 @@ namespace app\models;
 use yii;
 use yii\db\ActiveRecord;
 
+/**
+ * Class Config
+ * @package app\models
+ */
 class Config extends ActiveRecord{
     private static $config;
 

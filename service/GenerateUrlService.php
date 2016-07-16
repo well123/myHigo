@@ -10,8 +10,8 @@ namespace app\service;
 class GenerateUrlService{
 
     private static $IPAddress = '';
-
     private static $HTTP = 'http://';
+
     private static function getIP(){
         if(static::$IPAddress == ''){
             static::$IPAddress = InitService::getConfig('LINE_1');
@@ -45,5 +45,18 @@ class GenerateUrlService{
 
     public static function getLogoutUrl(){
         return self::getUrl(InitService::getConfig('URL_LOGOUT'));
+    }
+
+    public static function getUserLeftInfo(){
+        return self::getUrl(InitService::getConfig('URL_LEFT_INFO')).'/?&_='.Functions::getMillisecond().'__ajax';
+    }
+
+    public static function getOrderList(){
+        return self::getUrl(InitService::getConfig('URL_ORDER_LIST')).'/?&_='.Functions::getMillisecond().
+        '__autorefresh';
+    }
+
+    public static function getBuyUrl(){
+        return self::getUrl(InitService::getConfig('URL_BUY')).Functions::getMillisecond().'__ajax';
     }
 }

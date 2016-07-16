@@ -1,4 +1,5 @@
 <div id="logContent">
+    <div><input type="button" @click="" value="START SYSTEM"> <input type="button" value="STOP SYSTEM"></div>
     <ul>
         <li>时间</li>
         <li style="margin-left: 150px">内容</li>
