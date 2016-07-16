@@ -8,7 +8,7 @@
 namespace app\service;
 
 use yii;
-
+use app\models\Record;
 class HigoClient{
 
     private static $userInfoUrl = '';
@@ -183,9 +183,37 @@ class HigoClient{
     public static function buy($data = ''){
         if(true){//判断是赔率是否购买
             Functions::saveLog(Yii::$app->message['Buy']['buying']);
-            $response = HttpClient::curl(self::$buyUrl, $data);
+            //查询本期是否购买
+            $buy = array(
+                't'=>'',
+                'v'=>self::$v
+            );
+            $response = HttpClient::curl(self::$buyUrl, $buy);
             $arr = ['suc_orders', 'success', 'true'];
             if(self::stringExist($response, $arr)){  //成功
+                Functions::saveLog(Yii::$app->message['Buy']['buySuccess']);
+//                $data['user'] = self::$userName;
+//                $data['edu'] = self::$edu;
+//                $data['yue'] = self::$yue;
+//                $data['one_price'] = self::$one_price;
+//                $data['one'] = self::$one;
+//                $data['two_price'] = self::$two_price;
+//                $data['two'] = self::$two;
+//                $data['three_price'] = self::$three_price;
+//                $data['three'] = self::$three;
+//                $data['four_price'] = self::$four_price;
+//                $data['four'] = self::$four;
+//                $data['five_price'] = self::$five_price;
+//                $data['five'] = self::$five;
+//                $data['all_price'] = self::$all_price;
+//                $data['all'] = self::$all;
+//                $data['json'] = self::$json;
+//                $data['record_time'] = self::$record_time;
+//                $data['old'] = self::$old;
+//                $data['old_res'] = self::$old_res;
+//                $data['now'] = self::$now;
+//                $data['res_time'] = self::$res_time;
+//                Record::insertRecord($data);
             }else{  //购买失败
             }
         }else{

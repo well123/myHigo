@@ -8,6 +8,7 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\Record;
 
 class SiteController extends Controller{
 
@@ -46,6 +47,7 @@ class SiteController extends Controller{
     }
 
     public function actionIndex(){
+        Record::insertRecord();exit;
         if(Yii::$app->user->isGuest){
             return $this->actionLogin();
         }
