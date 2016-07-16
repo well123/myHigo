@@ -19,33 +19,17 @@ class Record extends ActiveRecord{
 
     //插入购买记录
     public static function insertRecord($data=array()){
-        if(!empty($data)){
+        if(empty($data)){
             return false;
         }
         $record = self::getInstance();
-        $record -> user = $data['user'];
-        $record -> edu = $data['edu'];
-        $record -> yue = $data['yue'];
-        $record -> one_price = $data['one_price'];
-        $record -> one = $data['one'];
-        $record -> two_price = $data['two_price'];
-        $record -> two = $data['two'];
-        $record -> three_price = $data['three_price'];
-        $record -> three = $data['three'];
-        $record -> four_price = $data['four_price'];
-        $record -> four = $data['four'];
-        $record -> five_price = $data['five_price'];
-        $record -> five = $data['five'];
-        $record -> all_price = $data['all_price'];
-        $record -> all = $data['all'];
-        $record -> json = $data['json'];
-        $record -> record_time = date("Y-m-d H:i:s");
-        $record -> old = $data['old'];
-        $record -> old_res = $data['old_res'];
-        $record -> now = $data['now'];
-        $record -> res_time = $data['res_time'];
-        $record ->save();
-        return true;
+        $record -> n_id = $data['n_id'];
+        $record -> ball_num = $data['ball_num'];
+        $record -> ball_money = $data['ball_money'];
+        $record -> ball_price = $data['ball_price'];
+        $record -> ball_type = $data['ball_type'];
+        $record -> save();
+        return $record ->attributes['id'];
     }
 
 }

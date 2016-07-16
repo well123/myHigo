@@ -13,10 +13,10 @@ class Data extends ActiveRecord{
         return self::$record;
     }
 
-    public function getDataByNum($num='') {
+    public static function getDataByNum($num='') {
         $data = self::getInstance();
         $data -> num = $num;
-        $res=$data->find()->asArray()->all();
-        var_dump($res);
+        $res=$data->find()->asArray()->one();
+        return $res;
     }
 }

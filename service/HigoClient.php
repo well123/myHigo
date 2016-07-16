@@ -7,6 +7,7 @@
  */
 namespace app\service;
 
+use app\models\Num;
 use yii;
 use app\models\Record;
 use app\models\Data;
@@ -29,6 +30,7 @@ class HigoClient{
     private static $oldNum = '';    //上期期数
     private static $oldRes = '';    //上期结果
     private static $nowNum = '';    //本期期数是
+    private static $nowTime = '';    //本期期数是
     /** 用户信息 **/
     private static $userName = '';
     private static $edu = '';
@@ -102,8 +104,12 @@ class HigoClient{
      * 左侧信息请求
      */
     public static function leftInfo(){
-        $response = HttpClient::curl(GenerateUrlService::getUserLeftInfo());
-        return self::isGetLeftInfoSuccess($response);
+        if(InitService::getSystemStatus() == 1){
+            $response = HttpClient::curl(GenerateUrlService::getUserLeftInfo());
+            return self::isGetLeftInfoSuccess($response);
+        }else{
+            Functions::saveLog(Yii::$app->message['service']['stop']);
+        }
     }
 
     /**
@@ -136,11 +142,15 @@ class HigoClient{
      * @return bool
      */
     public static function sscInfo($data = array()){
-        if(empty($data)){
-            $data = array('action' => 'ajax');
+        if(InitService::getSystemStatus() == 1) {
+            if (empty($data)) {
+                $data = array('action' => 'ajax');
+            }
+            $response = HttpClient::curl(GenerateUrlService::getOrderList(), $data);
+            return self::isGetSscInfo($response);
+        }else{
+            Functions::saveLog(Yii::$app->message['service']['stop']);
         }
-        $response = HttpClient::curl(GenerateUrlService::getOrderList(), $data);
-        return self::isGetSscInfo($response);
     }
 
     /**
@@ -154,9 +164,12 @@ class HigoClient{
             Functions::saveLog(Yii::$app->message['sscList']['sscListGetSuccess']);
             self::$json = Functions::InterceptString($string, '"integrate":', ',"changlong"');    //赔率json
             self::$oldNum = Functions::InterceptString($string, '"timesold":"', '","resultnum"');    //上期期数
-            self::$oldRes = Functions::InterceptString($string, 'resultnum":', ',"status');    //上期结果
+            $aOldRes = Functions::InterceptString($string, 'resultnum":', ',"status');    //上期结果
+            self::$oldRes = implode(',',$aOldRes);
             self::$nowNum = Functions::InterceptString($string, 'timesnow":"', '","timeclose');    //本期期数
             self::$v = Functions::InterceptString($string, 'version_number":"', '","game_limit');    //购买参数
+            $time= Functions::InterceptString($string,'timeopen":','},"oddSet');
+            self::$nowTime = date('Y-m-d H:i:s',strtotime('+ '.$time.' seconds'));
             //存数据库
         }else{  //失败
             Functions::saveLog(Yii::$app->message['sscList']['sscListGetFailed']);
@@ -169,36 +182,41 @@ class HigoClient{
      *
      * @param sring购买
      */
-    public static function buy($data = ''){
-        if(true){//判断是赔率是否购买
+    public static function buy(){
+        if(InitService::getSystemStatus() == 1) {
             Functions::saveLog(Yii::$app->message['Buy']['buying']);
-            $arr = json_decode(self::$json,true);
+            $arr = json_decode(self::$json, true);
             $res_data = self::getBuyData($arr);
-            $buy = array();
-            foreach($res_data as $value=>$item){
-                $buy = array(
-                    't'=>$item,
-                    'v'=>self::$v
-                );
-                $response = HttpClient::curl(GenerateUrlService::getBuyUrl(), $buy);
-                $arr = ['suc_orders', 'success', 'true'];
-                if(self::stringExist($response, $arr)) {  //成功
-                    //更新参数
-                    self::$v = Functions::InterceptString($response,'version_number":"','","new_orders');
-                    Functions::saveLog(Yii::$app->message['Buy']['buySuccess']);
-                }else{  //购买失败
-                    Functions::saveLog($item.Yii::$app->message['Buy']['buyFailed']);
-                }
+            $buySuccess = '';
+            if (!empty($res_data)) {
+                $buy = array();
+                foreach ($res_data as $value => $item) {
+                    $buy = array('t' => $item,
+                        'v' => self::$v);
+                    $response = HttpClient::curl(GenerateUrlService::getBuyUrl(), $buy);
+                    $arr = ['suc_orders', 'success', 'true'];
+                    if (self::stringExist($response, $arr)) {  //成功
+                        //更新参数
+                        $buySuccess .= $item;
+                        self::$v = Functions::InterceptString($response, 'version_number":"', '","new_orders');
+                        Functions::saveLog(Yii::$app->message['Buy']['buySuccess']);
+                    } else {  //购买失败
+                        Functions::saveLog($item . Yii::$app->message['Buy']['buyFailed']);
+                    }
 
+                }
+                $aBuySuccess = explode(';',$buySuccess);
+                self::insertRecord($aBuySuccess);
+            } else {
+                Functions::saveLog(self::$nowNum . Yii::$app->message['Buy']['nowNoBuy']);
             }
         }else{
-            Functions::saveLog(Yii::$app->message['Buy']['noBuy']);
-            return false;
+            Functions::saveLog(Yii::$app->message['service']['stop']);
         }
     }
 
     //返回购买数据
-    public static function getBuyData($price=array()){
+    private static function getBuyData($price=array()){
         $buyArr = Data::getDataByNum(self::$nowNum);
         $data =  array($buyArr['one'],$buyArr['two'],$buyArr['three'],$buyArr['four'],$buyArr['fiver'],$buyArr['all']);
         $arr = array();
@@ -215,6 +233,8 @@ class HigoClient{
                 }
                 if($price[$p] > InitService::getConfig('LOW_PRICE')){
                     $res[$buy[1]][] = substr($p,0,3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1];
+                }else{
+                    Functions::saveLog(substr($p,0,3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1].Yii::$app->message['Buy']['noBuy']);
                 }
 
             }
@@ -228,6 +248,8 @@ class HigoClient{
                 }
                 if($price[$p] > InitService::getConfig('LOW_PRICE')){
                     $res[$buy[1]][] = substr($p,0,3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1];
+                }else{
+                    Functions::saveLog(substr($p,0,3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1].Yii::$app->message['Buy']['noBuy']);
                 }
 
             }
@@ -237,6 +259,33 @@ class HigoClient{
             $res_data[$key] = implode(';',$res[$key]).';';
         }
         return $res_data;
+    }
+
+    private static function insertRecord($data = array()){
+        $numData = array(
+            'user'=>self::$userName,
+            'edu'=>self::$edu,
+            'yue'=>self::$yue,
+            'oldNum'=>self::$oldNum,
+            'oldRes'=>self::$oldRes,
+            'nowNum'=>self::$nowNum,
+            'nowTime'=>self::$nowTime,
+            'createTime'=>date('Y-m-d H:i:S'),
+            'json'=>self::$json,
+        );
+        $n_id = Num::insertRecord($numData);
+        foreach($data as $row){
+            $aRow = explode('|',$row);
+            $record = array(
+                'n_id'=>$n_id,
+                'ball_num'=>$aRow[0],
+                'ball_money'=>$aRow[3],
+                'ball_price'=>$aRow[2],
+                'ball_type'=>$aRow[1],
+            );
+            Record::insertRecord($record);
+        }
+
     }
     /**
      * 判断字符串是否有某些字符串
