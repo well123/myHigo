@@ -173,38 +173,23 @@ class HigoClient{
         if(true){//判断是赔率是否购买
             Functions::saveLog(Yii::$app->message['Buy']['buying']);
             $arr = json_decode(self::$json,true);
-            //查询本期是否购买
-            $buy = array(
-                't'=>'005|2|'.$arr['0052'].'|5',
-                'v'=>self::$v
-            );
-            $response = HttpClient::curl(GenerateUrlService::getBuyUrl(), $buy);
-            $arr = ['suc_orders', 'success', 'true'];
-            if(self::stringExist($response, $arr)){  //成功
-                Functions::saveLog(Yii::$app->message['Buy']['buySuccess']);
-//                $data['user'] = self::$userName;
-//                $data['edu'] = self::$edu;
-//                $data['yue'] = self::$yue;
-//                $data['one_price'] = self::$one_price;
-//                $data['one'] = self::$one;
-//                $data['two_price'] = self::$two_price;
-//                $data['two'] = self::$two;
-//                $data['three_price'] = self::$three_price;
-//                $data['three'] = self::$three;
-//                $data['four_price'] = self::$four_price;
-//                $data['four'] = self::$four;
-//                $data['five_price'] = self::$five_price;
-//                $data['five'] = self::$five;
-//                $data['all_price'] = self::$all_price;
-//                $data['all'] = self::$all;
-//                $data['json'] = self::$json;
-//                $data['record_time'] = self::$record_time;
-//                $data['old'] = self::$old;
-//                $data['old_res'] = self::$old_res;
-//                $data['now'] = self::$now;
-//                $data['res_time'] = self::$res_time;
-//                Record::insertRecord($data);
-            }else{  //购买失败
+            $res_data = self::getBuyData($arr);
+            $buy = array();
+            foreach($res_data as $value=>$item){
+                $buy = array(
+                    't'=>$item,
+                    'v'=>self::$v
+                );
+                $response = HttpClient::curl(GenerateUrlService::getBuyUrl(), $buy);
+                $arr = ['suc_orders', 'success', 'true'];
+                if(self::stringExist($response, $arr)) {  //成功
+                    //更新参数
+                    self::$v = Functions::InterceptString($response,'version_number":"','","new_orders');
+                    Functions::saveLog(Yii::$app->message['Buy']['buySuccess']);
+                }else{  //购买失败
+                    Functions::saveLog($item.Yii::$app->message['Buy']['buyFailed']);
+                }
+
             }
         }else{
             Functions::saveLog(Yii::$app->message['Buy']['noBuy']);
@@ -212,6 +197,47 @@ class HigoClient{
         }
     }
 
+    //返回购买数据
+    public static function getBuyData($price=array()){
+        $buyArr = Data::getDataByNum(self::$nowNum);
+        $data =  array($buyArr['one'],$buyArr['two'],$buyArr['three'],$buyArr['four'],$buyArr['fiver'],$buyArr['all']);
+        $arr = array();
+        $res = array();
+        foreach($data as $key=>$row){
+            $arr = explode('|',$row);
+            if($arr[0] != '-1'){
+                $buy = explode(',',$arr[0]);
+                $num = $key + 5;
+                if(strlen($num.$buy[0])==3){
+                    $p = '0'.$num.$buy[0];
+                }else{
+                    $p = '00'.$num.$buy[0];
+                }
+                if($price[$p] > InitService::getConfig('LOW_PRICE')){
+                    $res[$buy[1]][] = substr($p,0,3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1];
+                }
+
+            }
+            if($arr[1] != '-1'){
+                $buy = explode(',',$arr[1]);
+                $num = $key + 5;
+                if(strlen($num.$buy[0])==3){
+                    $p = '0'.$num.$buy[0];
+                }else{
+                    $p = '00'.$num.$buy[0];
+                }
+                if($price[$p] > InitService::getConfig('LOW_PRICE')){
+                    $res[$buy[1]][] = substr($p,0,3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1];
+                }
+
+            }
+        }
+        $res_data = array();
+        foreach($res as $key=>$item){
+            $res_data[$key] = implode(';',$res[$key]).';';
+        }
+        return $res_data;
+    }
     /**
      * 判断字符串是否有某些字符串
      */
