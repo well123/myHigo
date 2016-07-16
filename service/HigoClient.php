@@ -37,12 +37,12 @@ class HigoClient{
             'systemversion' => InitService::getConfig('systemversion'),
             'u' => $randomStr
         ];
-        self::$verifyValue =
-            explode('_', HttpClient::curl(GenerateUrlService::getLoginKeyUrl().http_build_query($verifyParams)));
         $captionParams = [
             'systemversion' => InitService::getConfig('systemversion'),
             't' => self::$verifyValue[0]
         ];
+        self::$verifyValue =
+            explode('_', HttpClient::curl(GenerateUrlService::getLoginKeyUrl().http_build_query($verifyParams)));
         return HttpClient::downLoadCaptcha(GenerateUrlService::getCaptionUrl().http_build_query($captionParams));
     }
 
