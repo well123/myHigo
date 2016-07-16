@@ -12,8 +12,9 @@ return [
         'loginSuccess' => '自动登录成功',
         'loginFailed' => '自动登录失败',
         'retryLogin' => '重试登录中...',
-        'retryLoginFailed' => '重试登录失败，请半小时后重试',
+        'retryLoginFailed' => '重试登录失败，请根据原因进行处理。',
         'logout' => '退出登录',
+        'dropped' => '已经掉线，正在自动重连...'
     ],
     'Buy' => [
         'buying'=>'正在购买中...',
@@ -57,5 +58,9 @@ return [
         '0101'=> '总和双',
         '0102'=> '总和大',
         '0103'=> '总和小',
+    ],
+    'systemStatus' => [
+        'started' => '系统服务已经启动',
+        'stopped' => '系统服务已经停止'
     ]
 ];
