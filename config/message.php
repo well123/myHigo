@@ -22,6 +22,7 @@ return [
         'buyFailed'=>'购买失败',
         'reBuy'=>'正在尝试重新购买...',
         'noBuy'=>'赔率过低不需要购买',
+        'nowNoBuy'=>'不需要购买',
     ],
     'leftInfo' => [
         'userInfoGetSuccess'=>'用户信息获取成功',
@@ -32,6 +33,9 @@ return [
         'sscListGetSuccess'=>'页面获取成功',
         'sscListGetFailed'=>'页面获取失败',
         'sscListGetAgain'=>'再次获取页面信息',
+    ],
+    'service' =>[
+        'stop'=>'当前服务已经关闭',
     ],
     'ball' => [
         '0050'=> '第1球单',
