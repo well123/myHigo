@@ -61,8 +61,13 @@ class HttpClient{
         return $result;
     }
 
-    private static function isDropped(){
-        Log::getInstance();
-        return false;
+    private static function isDropped($response){
+        file_put_contents('dd.txt',$response);
+//        if('<html>redirect...</html>' == $response){
+//            Log::getInstance();
+//            return true;
+//        }else{
+            return false;
+//        }
     }
 }

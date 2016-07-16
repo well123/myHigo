@@ -11,6 +11,7 @@ class GenerateUrlService{
 
     private static $IPAddress = '';
 
+    private static $HTTP = 'http://';
     private static function getIP(){
         if(static::$IPAddress == ''){
             static::$IPAddress = InitService::getConfig('LINE_1');
@@ -19,11 +20,11 @@ class GenerateUrlService{
     }
 
     private static function getUrlFrontPart(){
-        return self::getIP().InitService::getConfig('URL_PORT');
+        return self::getIP().':'.InitService::getConfig('URL_PORT');
     }
 
     private static function getUrl($middlePart){
-        return self::getUrlFrontPart().$middlePart;
+        return self::$HTTP.self::getUrlFrontPart().$middlePart;
     }
 
     public static function getIndexUrl(){

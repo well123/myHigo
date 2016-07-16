@@ -2,6 +2,7 @@
 namespace app\controllers;
 
 use app\models\Log;
+use app\service\InitService;
 use yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -51,6 +52,7 @@ class SiteController extends Controller{
         if(Yii::$app->user->isGuest){
             return $this->actionLogin();
         }
+        InitService::run();exit;
         return $this->render('index');
     }
 
