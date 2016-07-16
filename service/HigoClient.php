@@ -96,23 +96,12 @@ class HigoClient{
         return $array;
     }
 
-    /**
-     * 拼接url
-     * $line
-     */
-    public static function setUrl($line = 'LINE_1'){
-        $ip = Functions::getAttrValue($line);
-        $userInfoUrl = Functions::getAttrValue('URL_LEFT_INFO');
-        self::$userInfoUrl = 'http://'.$ip.$userInfoUrl;
-    }
 
     /**
      * 左侧信息请求
      */
     public static function leftInfo(){
-        $response = HttpClient::curl(self::$leftInfoUrl);
-        var_dump($response);
-        exit;
+        $response = HttpClient::curl(GenerateUrlService::getUserLeftInfo());
         return self::isGetLeftInfoSuccess($response);
     }
 
@@ -130,7 +119,7 @@ class HigoClient{
             self::$userName = Functions::InterceptString($string, '{"account":"', '","credit"');    //用户名
             self::$edu = Functions::InterceptString($string, ',"credit":"', '","re_credit"');    //信用额度
             self::$yue = Functions::InterceptString($string, ',"total_amount":"', '","odds_refresh"');    //信用余额
-            return false;
+            return true;
             //存数据库
         }else{  //失败
             Functions::saveLog(Yii::$app->message['leftInfo']['userInfoGetFailed']);
@@ -149,7 +138,7 @@ class HigoClient{
         if(empty($data)){
             $data = array('action' => 'ajax');
         }
-        $response = HttpClient::curl(GenerateUrlService::getLoginUrl(), $data);
+        $response = HttpClient::curl(GenerateUrlService::getOrderList(), $data);
         return self::isGetSscInfo($response);
     }
 
@@ -182,9 +171,10 @@ class HigoClient{
     public static function buy($data = ''){
         if(true){//判断是赔率是否购买
             Functions::saveLog(Yii::$app->message['Buy']['buying']);
+            $arr = json_decode(self::$json,true);
             //查询本期是否购买
             $buy = array(
-                't'=>'',
+                't'=>'005|2|'.$arr['0052'].'|5',
                 'v'=>self::$v
             );
             $response = HttpClient::curl(self::$buyUrl, $buy);

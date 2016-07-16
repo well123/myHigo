@@ -16,7 +16,7 @@ class Functions{
 
     public static function saveLog($content){
         $log = Log::getInstance();
-        $log->user_id = Yii::$app->user->id;
+        $log->user_id = 'Yii::$app->user->id';
         $log->content = $content;
         $log->save();
     }
