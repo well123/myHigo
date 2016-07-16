@@ -9,6 +9,7 @@ namespace app\service;
 
 use yii;
 use app\models\Record;
+use app\models\Data;
 class HigoClient{
 
     private static $userInfoUrl = '';
@@ -177,7 +178,7 @@ class HigoClient{
                 't'=>'005|2|'.$arr['0052'].'|5',
                 'v'=>self::$v
             );
-            $response = HttpClient::curl(self::$buyUrl, $buy);
+            $response = HttpClient::curl(GenerateUrlService::getBuyUrl(), $buy);
             $arr = ['suc_orders', 'success', 'true'];
             if(self::stringExist($response, $arr)){  //成功
                 Functions::saveLog(Yii::$app->message['Buy']['buySuccess']);
