@@ -53,8 +53,7 @@ class HigoClient{
     }
 
     public static function getIndexPageContent(){
-        //TODO 拿到首页数据，读取几个配置的数据
-        file_put_contents('ee.txt', HttpClient::curl(GenerateUrlService::getIndexUrl()));
+        return HttpClient::curl(GenerateUrlService::getIndexUrl());
     }
 
     public static function getCaptionStr(){
