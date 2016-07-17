@@ -8,14 +8,13 @@
 namespace app\service;
 
 use yii;
-use app\models\User;
 
-require_once yii::$app->basePath.'\vendor\caption\Caption.php';
+require_once Yii::$app->basePath.'\vendor\caption\Caption.php';
 
 class Login{
 
     public static function getCookie(){
-        Functions::saveLog(yii::$app->message['startLogin']);
+        Functions::saveLog(Yii::$app->message['login']['startLogin']);
         HigoClient::getCookie();
     }
 
@@ -24,24 +23,31 @@ class Login{
         return $caption->CJY_GetScore();
     }
 
-
     public static function login(){
+        if(!InitService::getSystemStatus()){
+            return false;
+        }
         $loginTimes = 1;
-        while($loginTimes <= yii::$app->params['retryLoginTime']){
+        while($loginTimes <= Yii::$app->params['retryLoginTime']){
             if(HigoClient::login()){
-                Functions::saveLog(yii::$app->message['loginSuccess']);
+                Functions::saveLog(Yii::$app->message['login']['loginSuccess']);
                 break;
             }else{
-                Functions::saveLog(yii::$app->message['loginFailed'].','.$loginTimes.' times');
+                Functions::saveLog(Yii::$app->message['login']['loginFailed'].','.$loginTimes.' times');
                 $loginTimes++;
             }
         }
-        $loginTimes > yii::$app->params['retryLoginTime'] && Functions::saveLog(yii::$app->message['retryLoginFailed']);
+        if($loginTimes > Yii::$app->params['retryLoginTime']){
+            Functions::saveLog(Yii::$app->message['login']['retryLoginFailed']);
+            InitService::stopSystemStatus();
+            return false;
+        }
+        return true;
     }
 
     public static function logout(){
-        Functions::saveLog(yii::$app->message['logout']);
         HigoClient::logout();
+        Functions::saveLog(Yii::$app->message['login']['logout']);
         self::clearCookie();
     }
 

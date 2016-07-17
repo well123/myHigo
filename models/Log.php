@@ -12,13 +12,4 @@ use yii\db\ActiveRecord;
 
 class Log extends ActiveRecord{
 
-    private static $log;
-
-    public static function getInstance(){
-        if(!(self::$log instanceof self)){
-            self::$log = new self;
-        }
-        return self::$log;
-    }
-
 }

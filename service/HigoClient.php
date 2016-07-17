@@ -7,6 +7,7 @@
  */
 namespace app\service;
 
+use app\models\Config;
 use app\models\Num;
 use yii;
 use app\models\Record;
@@ -26,6 +27,7 @@ class HigoClient{
     private static $userName = '';
     private static $edu = '';
     private static $yue = '';
+    private static $time = 0;
 
     public static function getCookie(){
         HttpClient::curl(GenerateUrlService::getIndexUrl());
@@ -37,12 +39,12 @@ class HigoClient{
             'systemversion' => InitService::getConfig('systemversion'),
             'u' => $randomStr
         ];
+        self::$verifyValue =
+            explode('_', HttpClient::curl(GenerateUrlService::getLoginKeyUrl().http_build_query($verifyParams)));
         $captionParams = [
             'systemversion' => InitService::getConfig('systemversion'),
             't' => self::$verifyValue[0]
         ];
-        self::$verifyValue =
-            explode('_', HttpClient::curl(GenerateUrlService::getLoginKeyUrl().http_build_query($verifyParams)));
         return HttpClient::downLoadCaptcha(GenerateUrlService::getCaptionUrl().http_build_query($captionParams));
     }
 
@@ -64,6 +66,7 @@ class HigoClient{
     }
 
     public static function login(){
+        Functions::saveLog("开始登录内部");
         $caption = self::getCaptionStr();
         $params = [
             'VerifyCode' => $caption,
@@ -80,12 +83,25 @@ class HigoClient{
     }
 
     public static function logout(){
-        //TODO 看浏览器是否清楚缓存
-        HttpClient::curl(GenerateUrlService::getLogoutUrl());
+        HttpClient::curlFetch(GenerateUrlService::getLogoutUrl());
     }
 
-    private static function isLoginSuccess(Array $array){
-        return $array;
+    private static function isLoginSuccess($response){
+        file_put_contents(self::$time.'dde.txt', $response);
+        Functions::saveLog("判断是否成功登录");
+        self::$time++;
+        $data = explode("\n", $response);
+        if(sizeof($data) > 2){
+            $config = Config::findOne(['name' => 'LOGGED_FRONT_PART']);
+            $config->value = $data[0];
+            $config->save();
+            $referUrl = str_replace('host', GenerateUrlService::getUrlFrontPart(), $data[1]);
+            HttpClient::curlFetch($referUrl, [], GenerateUrlService::getIndexUrl());
+            return true;
+        }else{
+            Functions::saveLog(Yii::$app->message['login']['loginFailed'].$response);
+            return false;
+        }
     }
 
     /**
@@ -118,7 +134,7 @@ class HigoClient{
             Functions::saveLog(Yii::$app->message['leftInfo']['userInfoGetSuccess']);
             self::$userName = Functions::InterceptString($string, '{"account":"', '","credit"');    //用户名
             self::$edu = Functions::InterceptString($string, ',"credit":"', '","re_credit"');    //信用额度
-            self::$yue = Functions::InterceptString($string, ',"total_amount":"', '","odds_refresh"');    //信用余额
+            self::$yue = Functions::InterceptString($string, 're_credit":"', '","total_amount');    //信用余额
             return true;
             //存数据库
         }else{  //失败
@@ -135,14 +151,24 @@ class HigoClient{
      * @return bool
      */
     public static function sscInfo($data = array()){
-        if(InitService::getSystemStatus() == 1){
-            if(empty($data)){
-                $data = array('action' => 'ajax');
+        $time = 0;
+        while($time < 2){
+            if(InitService::getSystemStatus() == 1){
+                if(empty($data)){
+                    $data = array('action' => 'ajax');
+                }
+                $response = HttpClient::curl(GenerateUrlService::getOrderList(), $data);
+                if(self::isGetSscInfo($response)){
+                    break;
+                }
+            }else{
+                Functions::saveLog(Yii::$app->message['service']['stop']);
             }
-            $response = HttpClient::curl(GenerateUrlService::getOrderList(), $data);
-            return self::isGetSscInfo($response);
-        }else{
-            Functions::saveLog(Yii::$app->message['service']['stop']);
+            $time++;
+            if($time >= 2){
+                Functions::saveLog(Yii::$app->message['Buy']['nowPrice']);
+                Login::logout();
+            }
         }
     }
 
@@ -161,9 +187,14 @@ class HigoClient{
         if(self::stringExist($string, $arr)){//成功
             Functions::saveLog(Yii::$app->message['sscList']['sscListGetSuccess']);
             self::$json = Functions::InterceptString($string, '"integrate":', ',"changlong"');    //赔率json
+            if(strlen(self::$json) < 10){
+                Functions::saveLog(Yii::$app->message['Buy']['nowPrice']);
+                return false;
+            }
             self::$oldNum = Functions::InterceptString($string, '"timesold":"', '","resultnum"');    //上期期数
             $aOldRes = Functions::InterceptString($string, 'resultnum":', ',"status');    //上期结果
-            self::$oldRes = implode(',', $aOldRes);
+            $oldRes = json_decode($aOldRes, true);
+            self::$oldRes = implode('', $oldRes);
             self::$nowNum = Functions::InterceptString($string, 'timesnow":"', '","timeclose');    //本期期数
             self::$v = Functions::InterceptString($string, 'version_number":"', '","game_limit');    //购买参数
             $time = Functions::InterceptString($string, 'timeopen":', '},"oddSet');
@@ -173,6 +204,7 @@ class HigoClient{
             Functions::saveLog(Yii::$app->message['sscList']['sscListGetFailed']);
             return false;
         }
+        return true;
     }
 
     /**
@@ -187,7 +219,6 @@ class HigoClient{
             $res_data = self::getBuyData($arr);
             $buySuccess = '';
             if(!empty($res_data)){
-                $buy = array();
                 foreach($res_data as $value => $item){
                     $buy = array(
                         't' => $item,
@@ -202,12 +233,14 @@ class HigoClient{
                     if(self::stringExist($response, $arr)){  //成功
                         //更新参数
                         $buySuccess .= $item;
+                        $sItem = self::translation($item);
                         self::$v = Functions::InterceptString($response, 'version_number":"', '","new_orders');
-                        Functions::saveLog(Yii::$app->message['Buy']['buySuccess']);
+                        Functions::saveLog($sItem.Yii::$app->message['Buy']['buySuccess']);
                     }else{  //购买失败
                         Functions::saveLog($item.Yii::$app->message['Buy']['buyFailed']);
                     }
                 }
+                $buySuccess = trim($buySuccess, ';');
                 $aBuySuccess = explode(';', $buySuccess);
                 self::insertRecord($aBuySuccess);
             }else{
@@ -229,7 +262,6 @@ class HigoClient{
             $buyArr['fiver'],
             $buyArr['all']
         );
-        $arr = array();
         $res = array();
         foreach($data as $key => $row){
             $arr = explode('|', $row);
@@ -272,6 +304,9 @@ class HigoClient{
     }
 
     private static function insertRecord($data = array()){
+        if(empty($data)){
+            return false;
+        }
         $numData = array(
             'user' => self::$userName,
             'edu' => self::$edu,
@@ -310,5 +345,23 @@ class HigoClient{
             }
         }
         return true;
+    }
+
+    /**
+     * 翻译成中文
+     */
+    private static function translation($string=''){
+        if($string == ''){
+            return false;
+        }
+        $string = trim($string,';');
+        $arr = explode(';',$string);
+        $res_data = '';
+        foreach($arr as $row){
+            $aRow = explode('|',$row);
+            $ball = $aRow[0].$aRow[1];
+            $res_data .= Yii::$app->message['ball'][$ball];
+        }
+        return $res_data;
     }
 }

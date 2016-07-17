@@ -19,7 +19,7 @@ class GenerateUrlService{
         return static::$IPAddress;
     }
 
-    private static function getUrlFrontPart(){
+    public static function getUrlFrontPart(){
         return self::getIP().':'.InitService::getConfig('URL_PORT');
     }
 
@@ -28,7 +28,7 @@ class GenerateUrlService{
     }
 
     public static function getIndexUrl(){
-        return self::getUrl(InitService::getConfig('URL_INDEX'));
+        return self::getUrl(InitService::getConfig('UNLOG_FRONT_PART').InitService::getConfig('URL_INDEX'));
     }
 
     public static function getLoginUrl(){
@@ -44,19 +44,22 @@ class GenerateUrlService{
     }
 
     public static function getLogoutUrl(){
-        return self::getUrl(InitService::getConfig('URL_LOGOUT'));
+        return self::getUrl(InitService::getConfig('LOGGED_FRONT_PART').InitService::getConfig('URL_LOGOUT'));
     }
 
     public static function getUserLeftInfo(){
-        return self::getUrl(InitService::getConfig('URL_LEFT_INFO')).'/?&_='.Functions::getMillisecond().'__ajax';
+        return self::getUrl(InitService::getConfig('LOGGED_FRONT_PART').InitService::getConfig('URL_LEFT_INFO')).'/?&_='.Functions::getMillisecond().'__ajax';
     }
 
     public static function getOrderList(){
-        return self::getUrl(InitService::getConfig('URL_ORDER_LIST')).'/?&_='.Functions::getMillisecond().
+        return self::getUrl(InitService::getConfig('LOGGED_FRONT_PART').InitService::getConfig('URL_ORDER_LIST')).'/?&_='.Functions::getMillisecond().
         '__autorefresh';
     }
 
     public static function getBuyUrl(){
-        return self::getUrl(InitService::getConfig('URL_BUY')).Functions::getMillisecond().'__ajax';
+        return self::getUrl(InitService::getConfig('LOGGED_FRONT_PART').InitService::getConfig('URL_BUY')).Functions::getMillisecond().'__ajax';
+    }
+    public static function getLoginReferUrl(){
+        return self::getUrl(InitService::getConfig('URL_LOGOUT'));
     }
 }

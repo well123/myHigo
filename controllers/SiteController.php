@@ -2,16 +2,16 @@
 namespace app\controllers;
 
 use app\models\Log;
-use app\service\GenerateUrlService;
-use app\service\HttpClient;
+use app\service\Functions;
+use app\service\HigoClient;
 use app\service\InitService;
+use app\service\Login;
 use yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
-use app\models\Record;
 
 class SiteController extends Controller{
 
@@ -89,7 +89,8 @@ class SiteController extends Controller{
     }
 
     public function actionChangeStatus(){
-        InitService::changeSystemStatus();
+        $status = $status = Yii::$app->request->get('status');
+        InitService::changeSystemStatus($status);
     }
 
     public function actionGetStatus(){
@@ -97,6 +98,12 @@ class SiteController extends Controller{
     }
 
     public function actionGetContent(){
-        file_put_contents('ed.txt',HttpClient::curl(GenerateUrlService::getUserLeftInfo()));
+        if(Login::login()){
+            Functions::saveLog("开始买东西");
+            HigoClient::leftInfo();
+            HigoClient::sscInfo();
+            HigoClient::buy();
+        }
+        Login::logout();
     }
 }

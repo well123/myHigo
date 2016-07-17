@@ -1,0 +1,7 @@
+{"data":{"user":{"account":"a009a009(A\u76e4)","credit":"10000","re_credit":"10031","total_amount":"0","odds_refresh":10,"game_limit":{"00":[2,5000],"01":[2,50000],"02":[2,50000],"03":[2,10000],"04":[2,3000],"05":[2,5000],"06":[2,5000],"07":[2,5000],"08":[2,5000]},"version_number":"82","new_orders":[],"fail_orders":"0"},"success":true},"state":"1","errors":""}êêê
+                    <script type="text/javascript" charset="utf-8">
+                        try {
+                            document.domain = document.domain.replace("html.", "");
+                        } catch (e) {
+                        }
+                    </script>

@@ -23,6 +23,7 @@ return [
         'reBuy'=>'正在尝试重新购买...',
         'noBuy'=>'赔率过低不需要购买',
         'nowNoBuy'=>'不需要购买',
+        'nowPrice'=>'没获取到赔率',
     ],
     'leftInfo' => [
         'userInfoGetSuccess'=>'用户信息获取成功',
