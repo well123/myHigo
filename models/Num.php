@@ -26,11 +26,12 @@ class Num extends ActiveRecord{
         $num -> user =  $data['user'];
         $num -> edu = $data['edu'];
         $num -> yue = $data['yue'];
+        $num -> paid_pre_period = $data['paid_pre_period'];
         $num -> oldNum = $data['oldNum'];
         $num -> oldRes = $data['oldRes'];
         $num -> nowNum = $data['nowNum'];
-        $num -> nowTime = $data['nowTime'];
-        $num -> createTime = $data['createTime'];
+        $num -> seal_time = $data['seal_time'];
+        $num -> lottery_time = $data['lottery_time'];
         $num -> json = $data['json'];
         $num -> save();
         return $num->attributes['id'];

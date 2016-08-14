@@ -47,7 +47,7 @@ class Login{
 
     public static function logout(){
         HigoClient::logout();
-        Functions::saveLog(Yii::$app->message['login']['logout']);
+        //Functions::saveLog(Yii::$app->message['login']['logout']);
         self::clearCookie();
     }
 

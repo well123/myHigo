@@ -22,11 +22,13 @@ class HigoClient{
     private static $oldNum = '';    //上期期数
     private static $oldRes = '';    //上期结果
     private static $nowNum = '';    //本期期数是
-    private static $nowTime = '';    //本期期数是
+    private static $seal_time = '';    //封盘时间
+    private static $lottery_time = '';    //开奖时间
     /** 用户信息 **/
     private static $userName = '';
     private static $edu = '';
     private static $yue = '';
+    private static $paid_pre_period = '';
     private static $time = 0;
 
     public static function getCookie(){
@@ -135,6 +137,7 @@ class HigoClient{
             self::$userName = Functions::InterceptString($string, '{"account":"', '","credit"');    //用户名
             self::$edu = Functions::InterceptString($string, ',"credit":"', '","re_credit"');    //信用额度
             self::$yue = Functions::InterceptString($string, 're_credit":"', '","total_amount');    //信用余额
+            self::$paid_pre_period = Functions::InterceptString($string, 'total_amount":"', '","odds_refresh');    //已下金额
             return true;
             //存数据库
         }else{  //失败
@@ -197,8 +200,10 @@ class HigoClient{
             self::$oldRes = implode('', $oldRes);
             self::$nowNum = Functions::InterceptString($string, 'timesnow":"', '","timeclose');    //本期期数
             self::$v = Functions::InterceptString($string, 'version_number":"', '","game_limit');    //购买参数
-            $time = Functions::InterceptString($string, 'timeopen":', '},"oddSet');
-            self::$nowTime = date('Y-m-d H:i:s', strtotime('+ '.$time.' seconds'));
+            $timeClose = Functions::InterceptString($string, 'timeclose":', ',"timeopen');		//封盘时间
+            $timeOpen = Functions::InterceptString($string, 'timeopen":', '},"oddSet');		//开奖时间
+            self::$seal_time = ($timeClose/60).':'.($timeClose%60);					//分秒形式
+            self::$lottery_time = ($timeOpen/60).':'.($timeOpen%60);
             //存数据库
         }else{  //失败
             Functions::saveLog(Yii::$app->message['sscList']['sscListGetFailed']);
@@ -259,8 +264,8 @@ class HigoClient{
             $buyArr['two'],
             $buyArr['three'],
             $buyArr['four'],
-            $buyArr['fiver'],
-            $buyArr['all']
+            $buyArr['five'],
+            $buyArr['all_type']
         );
         $res = array();
         foreach($data as $key => $row){
@@ -311,11 +316,12 @@ class HigoClient{
             'user' => self::$userName,
             'edu' => self::$edu,
             'yue' => self::$yue,
+            'paid_pre_period' => self::$paid_pre_period,
             'oldNum' => self::$oldNum,
             'oldRes' => self::$oldRes,
             'nowNum' => self::$nowNum,
-            'nowTime' => self::$nowTime,
-            'createTime' => date('Y-m-d H:i:S'),
+            'seal_time' => self::$seal_time,
+            'lottery_time' => self::$lottery_time,
             'json' => self::$json,
         );
         $n_id = Num::insertRecord($numData);

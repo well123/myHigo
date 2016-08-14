@@ -15,7 +15,7 @@ class Data extends ActiveRecord{
 
     public static function getDataByNum($num='') {
         $data = self::getInstance();
-        $data -> num = $num;
+        $data -> num_periods = $num;
         $res=$data->find()->asArray()->one();
         return $res;
     }
