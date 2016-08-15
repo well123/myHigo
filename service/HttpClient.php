@@ -46,7 +46,7 @@ class HttpClient{
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // 返回字符串，而非直接输出
         curl_setopt($ch, CURLOPT_HEADER, false);   // 不返回header部分
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 120);   // 设置socket连接超时时间
-        curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+        isset($_SERVER['HTTP_USER_AGENT']) && curl_setopt($ch, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
         if(!empty($referer)){
             curl_setopt($ch, CURLOPT_REFERER, $referer);   // 设置引用网址
         }
@@ -60,7 +60,7 @@ class HttpClient{
         }
         set_time_limit(120); // 设置自己服务器超时时间
         $result = curl_exec($ch);
-        file_put_contents('eas.txt', 'url is '.$url."<br/>".$result, FILE_APPEND);
+        file_put_contents('eas.txt',"\n". 'url is '.$url."\n".$result, FILE_APPEND);
         curl_close($ch);
         return $result;
     }

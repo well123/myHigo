@@ -30,7 +30,7 @@ class Login{
         $loginTimes = 1;
         while($loginTimes <= Yii::$app->params['retryLoginTime']){
             if(HigoClient::login()){
-                Functions::saveLog(Yii::$app->message['login']['loginSuccess']);
+//                Functions::saveLog(Yii::$app->message['login']['loginSuccess']);
                 break;
             }else{
                 Functions::saveLog(Yii::$app->message['login']['loginFailed'].','.$loginTimes.' times');

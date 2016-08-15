@@ -24,6 +24,7 @@ class HigoClient{
     private static $nowNum = '';    //本期期数是
     private static $seal_time = '';    //封盘时间
     private static $lottery_time = '';    //开奖时间
+    private static $n_id = '';    //期数外键
     /** 用户信息 **/
     private static $userName = '';
     private static $edu = '';
@@ -68,7 +69,6 @@ class HigoClient{
     }
 
     public static function login(){
-        Functions::saveLog("开始登录内部");
         $caption = self::getCaptionStr();
         $params = [
             'VerifyCode' => $caption,
@@ -90,7 +90,6 @@ class HigoClient{
 
     private static function isLoginSuccess($response){
         file_put_contents(self::$time.'dde.txt', $response);
-        Functions::saveLog("判断是否成功登录");
         self::$time++;
         $data = explode("\n", $response);
         if(sizeof($data) > 2){
@@ -137,7 +136,8 @@ class HigoClient{
             self::$userName = Functions::InterceptString($string, '{"account":"', '","credit"');    //用户名
             self::$edu = Functions::InterceptString($string, ',"credit":"', '","re_credit"');    //信用额度
             self::$yue = Functions::InterceptString($string, 're_credit":"', '","total_amount');    //信用余额
-            self::$paid_pre_period = Functions::InterceptString($string, 'total_amount":"', '","odds_refresh');    //已下金额
+            self::$paid_pre_period =
+                Functions::InterceptString($string, 'total_amount":"', '","odds_refresh');    //已下金额
             return true;
             //存数据库
         }else{  //失败
@@ -200,10 +200,23 @@ class HigoClient{
             self::$oldRes = implode('', $oldRes);
             self::$nowNum = Functions::InterceptString($string, 'timesnow":"', '","timeclose');    //本期期数
             self::$v = Functions::InterceptString($string, 'version_number":"', '","game_limit');    //购买参数
-            $timeClose = Functions::InterceptString($string, 'timeclose":', ',"timeopen');		//封盘时间
-            $timeOpen = Functions::InterceptString($string, 'timeopen":', '},"oddSet');		//开奖时间
-            self::$seal_time = ($timeClose/60).':'.($timeClose%60);					//分秒形式
-            self::$lottery_time = ($timeOpen/60).':'.($timeOpen%60);
+            $timeClose = Functions::InterceptString($string, 'timeclose":', ',"timeopen');        //封盘时间
+            $timeOpen = Functions::InterceptString($string, 'timeopen":', '},"oddSet');        //开奖时间
+            self::$seal_time = intval($timeClose / 60).':'.($timeClose % 60);                    //分秒形式
+            self::$lottery_time = intval($timeOpen / 60).':'.($timeOpen % 60);
+            $numData = array(
+                'user' => self::$userName,
+                'edu' => self::$edu,
+                'yue' => self::$yue,
+                'paid_pre_period' => self::$paid_pre_period,
+                'oldNum' => self::$oldNum,
+                'oldRes' => self::$oldRes,
+                'nowNum' => self::$nowNum,
+                'seal_time' => self::$seal_time,
+                'lottery_time' => self::$lottery_time,
+                'json' => self::$json,
+            );
+            self::$n_id = Num::insertRecord($numData);
             //存数据库
         }else{  //失败
             Functions::saveLog(Yii::$app->message['sscList']['sscListGetFailed']);
@@ -259,6 +272,9 @@ class HigoClient{
     //返回购买数据
     private static function getBuyData($price = array()){
         $buyArr = Data::getDataByNum(self::$nowNum);
+        if(empty($buyArr)){
+            return array();
+        }
         $data = array(
             $buyArr['one'],
             $buyArr['two'],
@@ -278,11 +294,10 @@ class HigoClient{
                 }else{
                     $p = '00'.$num.$buy[0];
                 }
-                if($price[$p] > InitService::getConfig('LOW_PRICE')){
+                if($price[$p] >= InitService::getConfig('LOW_PRICE')){
                     $res[$buy[1]][] = substr($p, 0, 3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1];
                 }else{
-                    Functions::saveLog(substr($p, 0, 3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1].
-                                       Yii::$app->message['Buy']['noBuy']);
+                    Functions::saveLog(substr($p, 0, 3).Yii::$app->message['Buy']['noBuy']);
                 }
             }
             if($arr[1] != '-1'){
@@ -312,23 +327,10 @@ class HigoClient{
         if(empty($data)){
             return false;
         }
-        $numData = array(
-            'user' => self::$userName,
-            'edu' => self::$edu,
-            'yue' => self::$yue,
-            'paid_pre_period' => self::$paid_pre_period,
-            'oldNum' => self::$oldNum,
-            'oldRes' => self::$oldRes,
-            'nowNum' => self::$nowNum,
-            'seal_time' => self::$seal_time,
-            'lottery_time' => self::$lottery_time,
-            'json' => self::$json,
-        );
-        $n_id = Num::insertRecord($numData);
         foreach($data as $row){
             $aRow = explode('|', $row);
             $record = array(
-                'n_id' => $n_id,
+                'n_id' => self::$n_id,
                 'ball_num' => $aRow[0],
                 'ball_money' => $aRow[3],
                 'ball_price' => $aRow[2],
@@ -356,15 +358,15 @@ class HigoClient{
     /**
      * 翻译成中文
      */
-    private static function translation($string=''){
+    private static function translation($string = ''){
         if($string == ''){
             return false;
         }
-        $string = trim($string,';');
-        $arr = explode(';',$string);
+        $string = trim($string, ';');
+        $arr = explode(';', $string);
         $res_data = '';
         foreach($arr as $row){
-            $aRow = explode('|',$row);
+            $aRow = explode('|', $row);
             $ball = $aRow[0].$aRow[1];
             $res_data .= Yii::$app->message['ball'][$ball];
         }

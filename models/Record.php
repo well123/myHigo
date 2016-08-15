@@ -22,13 +22,13 @@ class Record extends ActiveRecord{
         if(empty($data)){
             return false;
         }
-        $record = self::getInstance();
+        $record = new Record();
         $record -> n_id = $data['n_id'];
         $record -> ball_num = $data['ball_num'];
         $record -> ball_money = $data['ball_money'];
         $record -> ball_price = $data['ball_price'];
         $record -> ball_type = $data['ball_type'];
-        $record -> save();
+        $record -> insert();
         return $record ->attributes['id'];
     }
 

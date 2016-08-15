@@ -12,6 +12,7 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\Data;
 
 class SiteController extends Controller{
 
@@ -99,7 +100,7 @@ class SiteController extends Controller{
 
     public function actionGetContent(){
         if(Login::login()){
-            Functions::saveLog("开始买东西");
+            Functions::saveLog("登录成功");
             HigoClient::leftInfo();
             HigoClient::sscInfo();
             HigoClient::buy();
