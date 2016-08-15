@@ -24,6 +24,7 @@ return [
         'noBuy'=>'赔率过低不需要购买',
         'nowNoBuy'=>'不需要购买',
         'nowPrice'=>'没获取到赔率',
+        'finished'=>'购买完成',
     ],
     'leftInfo' => [
         'userInfoGetSuccess'=>'用户信息获取成功',
