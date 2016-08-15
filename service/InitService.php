@@ -29,7 +29,7 @@ class InitService{
         self::initConfig();
     }
 
-    private static function initConfig(){
+    public static function initConfig(){
         $html = HigoClient::getIndexPageContent();
         //系统版本
         $config = Config::findOne(['name' => 'systemversion']);

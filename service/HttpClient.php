@@ -25,13 +25,13 @@ class HttpClient{
     public static function curl($url, Array $data = array(), $referer = ''){
         $result = '';
         $time = 0;
-        while($time < 2){
+//        while($time < 2){
             $result = self::curlFetch($url, $data, $referer);
-            if(!self::isDropped($result, $url)){
-                break;
-            }
-            $time++;
-        }
+//            if(!self::isDropped($result, $url)){
+//                break;
+//            }
+//            $time++;
+//        }
         return $result;
     }
 

@@ -99,8 +99,10 @@ class SiteController extends Controller{
     }
 
     public function actionGetContent(){
+        InitService::initConfig();
         if(Login::login()){
             Functions::saveLog("登录成功");
+            HigoClient::leftInfo();
             HigoClient::leftInfo();
             HigoClient::sscInfo();
             HigoClient::buy();
