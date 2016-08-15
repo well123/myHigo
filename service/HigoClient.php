@@ -261,6 +261,7 @@ class HigoClient{
                 $buySuccess = trim($buySuccess, ';');
                 $aBuySuccess = explode(';', $buySuccess);
                 self::insertRecord($aBuySuccess);
+                Functions::saveLog(self::$nowNum.Yii::$app->message['Buy']['finished']);    //购买完成
             }else{
                 Functions::saveLog(self::$nowNum.Yii::$app->message['Buy']['nowNoBuy']);
             }
@@ -368,7 +369,7 @@ class HigoClient{
         foreach($arr as $row){
             $aRow = explode('|', $row);
             $ball = $aRow[0].$aRow[1];
-            $res_data .= Yii::$app->message['ball'][$ball];
+            $res_data .= '<'.Yii::$app->message['ball'][$ball].'>';
         }
         return $res_data;
     }
