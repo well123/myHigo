@@ -256,6 +256,21 @@ class HigoClient{
                         Functions::saveLog($sItem.Yii::$app->message['Buy']['buySuccess']);
                     }else{  //购买失败
                         Functions::saveLog($item.Yii::$app->message['Buy']['buyFailed']);
+                        //因为网络问题购买失败，插入购买记录
+                        $item = trim($item, ';');
+                        $aItem = explode(';', $item);
+                        foreach ($aItem as $row){
+                            $aRow = explode('|',$row);
+                            $onBuyRecord = array(
+                                'n_id' => self::$n_id,
+                                'ball_num' => $aRow[0],
+                                'ball_money' => $aRow[3],
+                                'ball_price' => $aRow[2],
+                                'ball_type' => $aRow[1],
+                                'buy_result' => -2,
+                            );
+                            Record::insertRecord($onBuyRecord);
+                        }
                     }
                 }
                 $buySuccess = trim($buySuccess, ';');
@@ -299,6 +314,16 @@ class HigoClient{
                     $res[$buy[1]][] = substr($p, 0, 3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1];
                 }else{
                     Functions::saveLog(substr($p, 0, 3).Yii::$app->message['Buy']['noBuy']);
+                    //把赔率过低的插入购买记录
+                    $onBuyRecord = array(
+                        'n_id' => self::$n_id,
+                        'ball_num' => substr($p, 0, 3),
+                        'ball_money' => $buy[1],
+                        'ball_price' => $price[$p],
+                        'ball_type' => $buy[0],
+                        'buy_result' => -1,
+                    );
+                    Record::insertRecord($onBuyRecord);
                 }
             }
             if($arr[1] != '-1'){
@@ -314,6 +339,16 @@ class HigoClient{
                 }else{
                     Functions::saveLog(substr($p, 0, 3).'|'.$buy[0].'|'.$price[$p].'|'.$buy[1].
                                        Yii::$app->message['Buy']['noBuy']);
+                    //把赔率过低的插入购买记录
+                    $onBuyRecord = array(
+                        'n_id' => self::$n_id,
+                        'ball_num' => substr($p, 0, 3),
+                        'ball_money' => $buy[1],
+                        'ball_price' => $price[$p],
+                        'ball_type' => $buy[0],
+                        'buy_result' => -1,
+                    );
+                    Record::insertRecord($onBuyRecord);                   
                 }
             }
         }
@@ -336,6 +371,7 @@ class HigoClient{
                 'ball_money' => $aRow[3],
                 'ball_price' => $aRow[2],
                 'ball_type' => $aRow[1],
+                'buy_result' => 1,
             );
             Record::insertRecord($record);
         }
