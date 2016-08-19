@@ -28,6 +28,7 @@ class Record extends ActiveRecord{
         $record -> ball_money = $data['ball_money'];
         $record -> ball_price = $data['ball_price'];
         $record -> ball_type = $data['ball_type'];
+        $record -> buy_result = $data['buy_result'];
         $record -> insert();
         return $record ->attributes['id'];
     }
