@@ -101,16 +101,19 @@ class SiteController extends Controller{
     public function actionGetContent(){
         InitService::initConfig();
         if(Login::login()){
-            Functions::saveLog("开始买东西");
+            Functions::saveLog("登录成功");
             $sleep = rand(10,60);
             sleep($sleep);
+            HigoClient::leftInfo(false);
             HigoClient::leftInfo();
-            $sleep = rand(60,300);
-            sleep($sleep);
             HigoClient::sscInfo();
-            $sleep = rand(10,20);
+            $sleep = rand(300,360);
             sleep($sleep);
             HigoClient::buy();
+            $sleep = rand(10,20);
+            sleep($sleep);
+            HigoClient::leftInfo();
+            HigoClient::sscInfo();
         }
         Login::logout();
     }

@@ -59,19 +59,28 @@ class HigoClient{
         $result = [
             'error' => 1,
             'caption' => 0,
+            'PicId' => 0
         ];
-        while($result['error'] != 0){
-            $captionImg = HigoClient::getCaption();
-            $caption = new \Caption();
-            $result = $caption->CJY_RecognizeBytes($captionImg);
+        for($i = 0; $i < 60; $i++){
+            if($result['error'] != 0){
+                $captionImg = HigoClient::getCaption();
+                $caption = new \Caption();
+                $result = $caption->CJY_RecognizeBytes($captionImg);
+            }else{
+                break;
+            }
         }
-        return $result['caption'];
+        return $result;
     }
 
     public static function login(){
         $caption = self::getCaptionStr();
+        if($caption['error'] != 0){
+            Functions::saveLog(Yii::$app->message['login']['getCaptionFailed']);
+            return false;
+        }
         $params = [
-            'VerifyCode' => $caption,
+            'VerifyCode' => $caption['caption'],
             '__VerifyValue' => self::$verifyValue[1],
             '__name' => InitService::getConfig('USERNAME'),
             'password' => InitService::getConfig('PASSWORD'),
@@ -81,16 +90,29 @@ class HigoClient{
             'systemversion' => InitService::getConfig('systemversion')
         ];
         $response = HttpClient::curl(GenerateUrlService::getLoginUrl(), $params, GenerateUrlService::getIndexUrl());
-        return self::isLoginSuccess($response);
+        $response = self::isLoginSuccess($response, $caption['PicId']);
+        if($response['status']){
+            return true;
+        }else{
+            if($response['error'] == Yii::$app->message['login']['verifyFailed']){
+                if(self::$time < 100){
+                    self::login();
+                }else{
+                    return false;
+                }
+            }
+        }
     }
 
     public static function logout(){
         HttpClient::curlFetch(GenerateUrlService::getLogoutUrl());
     }
 
-    private static function isLoginSuccess($response){
-        file_put_contents(self::$time.'dde.txt', $response);
-        self::$time++;
+    private static function isLoginSuccess($response, $PicId = 0){
+        $result = [
+            'status' => 0,
+            'error' => ''
+        ];
         $data = explode("\n", $response);
         if(sizeof($data) > 2){
             $config = Config::findOne(['name' => 'LOGGED_FRONT_PART']);
@@ -98,33 +120,44 @@ class HigoClient{
             $config->save();
             $referUrl = str_replace('host', GenerateUrlService::getUrlFrontPart(), $data[1]);
             HttpClient::curlFetch($referUrl, [], GenerateUrlService::getIndexUrl());
-            return true;
+            $result['status'] = 1;
+            return $result;
         }else{
             Functions::saveLog(Yii::$app->message['login']['loginFailed'].$response);
-            return false;
+            if(strpos($response, Yii::$app->message['login']['verifyFailed']) !== false){
+                $caption = new \Caption();
+                $caption->CJY_ReportError($PicId);
+                self::$time++;
+                $result['error'] = Yii::$app->message['login']['verifyFailed'];
+                Functions::saveLog(Yii::$app->message['login']['retryLogin']);
+            }
+            return $result;
         }
     }
 
     /**
+     * @param bool $showInfo
      * 左侧信息请求
+     *
+     * @return bool
      */
-    public static function leftInfo(){
+    public static function leftInfo($showInfo = true){
         if(InitService::getSystemStatus() == 1){
             $response = HttpClient::curl(GenerateUrlService::getUserLeftInfo());
-            return self::isGetLeftInfoSuccess($response);
+            return self::isGetLeftInfoSuccess($response, $showInfo);
         }else{
             Functions::saveLog(Yii::$app->message['service']['stop']);
         }
     }
 
     /**
-     * 获取左侧数据
-     *
      * @param $string
+     * @param $showInfo
+     * 获取左侧数据
      *
      * @return bool
      */
-    private static function isGetLeftInfoSuccess($string){
+    private static function isGetLeftInfoSuccess($string, $showInfo){
         $arr = [
             'account',
             'success',
@@ -141,7 +174,7 @@ class HigoClient{
             return true;
             //存数据库
         }else{  //失败
-            Functions::saveLog(Yii::$app->message['leftInfo']['userInfoGetFailed']);
+            $showInfo && Functions::saveLog(Yii::$app->message['leftInfo']['userInfoGetFailed']);
             return false;
         }
     }
@@ -259,8 +292,8 @@ class HigoClient{
                         //因为网络问题购买失败，插入购买记录
                         $item = trim($item, ';');
                         $aItem = explode(';', $item);
-                        foreach ($aItem as $row){
-                            $aRow = explode('|',$row);
+                        foreach($aItem as $row){
+                            $aRow = explode('|', $row);
                             $onBuyRecord = array(
                                 'n_id' => self::$n_id,
                                 'ball_num' => $aRow[0],
@@ -348,7 +381,7 @@ class HigoClient{
                         'ball_type' => $buy[0],
                         'buy_result' => -1,
                     );
-                    Record::insertRecord($onBuyRecord);                   
+                    Record::insertRecord($onBuyRecord);
                 }
             }
         }

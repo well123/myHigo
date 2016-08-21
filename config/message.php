@@ -14,7 +14,9 @@ return [
         'retryLogin' => '重试登录中...',
         'retryLoginFailed' => '重试登录失败，请根据原因进行处理。',
         'logout' => '退出登录',
-        'dropped' => '已经掉线，正在自动重连...'
+        'dropped' => '已经掉线，正在自动重连...',
+        'verifyFailed' => '验证码不正确',
+        'getCaptionFailed' => '获取验证码失败'
     ],
     'Buy' => [
         'buying'=>'正在购买中...',
