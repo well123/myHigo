@@ -99,6 +99,7 @@ class SiteController extends Controller{
     }
 
     public function actionGetContent(){
+        Yii::$app->cache->flush();
         InitService::initConfig();
         if(Login::login()){
             Functions::saveLog("登录成功");
@@ -107,13 +108,26 @@ class SiteController extends Controller{
             HigoClient::leftInfo(false);
             HigoClient::leftInfo();
             HigoClient::sscInfo();
-            $sleep = rand(300,360);
+        }
+        Login::logout();
+    }
+
+    public function actionBuy(){
+        Yii::$app->cache->flush();
+        InitService::initConfig();
+        if(Login::login()){
+			$sleep = rand(10,15);
             sleep($sleep);
-            HigoClient::buy();
-            $sleep = rand(10,20);
-            sleep($sleep);
-            HigoClient::leftInfo();
-            HigoClient::sscInfo();
+			if(HigoClient::sscInfo(array(),false)){
+				$sleep = rand(10,60);
+				sleep($sleep);
+				HigoClient::buy();
+				$sleep = rand(10,20);
+				sleep($sleep);
+                HigoClient::leftInfo(false);
+				HigoClient::leftInfo();
+				HigoClient::sscInfo();
+			}
         }
         Login::logout();
     }

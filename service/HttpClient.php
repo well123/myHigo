@@ -25,13 +25,13 @@ class HttpClient{
     public static function curl($url, Array $data = array(), $referer = ''){
         $result = '';
         $time = 0;
-//        while($time < 2){
-            $result = self::curlFetch($url, $data, $referer);
-//            if(!self::isDropped($result, $url)){
-//                break;
-//            }
-//            $time++;
-//        }
+        //        while($time < 2){
+        $result = self::curlFetch($url, $data, $referer);
+        //            if(!self::isDropped($result, $url)){
+        //                break;
+        //            }
+        //            $time++;
+        //        }
         return $result;
     }
 
@@ -60,7 +60,8 @@ class HttpClient{
         }
         set_time_limit(120); // 设置自己服务器超时时间
         $result = curl_exec($ch);
-        file_put_contents('eas.txt',"\n". 'url is '.$url."\n".$result, FILE_APPEND);
+        file_put_contents('eas.txt', "\n".'url is '.$url."\n"."time is ".date('y-m-dh:i:s', time()).$result,
+                          FILE_APPEND);
         curl_close($ch);
         return $result;
     }

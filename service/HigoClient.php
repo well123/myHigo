@@ -44,6 +44,9 @@ class HigoClient{
         ];
         self::$verifyValue =
             explode('_', HttpClient::curl(GenerateUrlService::getLoginKeyUrl().http_build_query($verifyParams)));
+        if(sizeof(self::$verifyValue) < 3){
+            return "";
+        }
         $captionParams = [
             'systemversion' => InitService::getConfig('systemversion'),
             't' => self::$verifyValue[0]
@@ -65,7 +68,9 @@ class HigoClient{
             if($result['error'] != 0){
                 $captionImg = HigoClient::getCaption();
                 $caption = new \Caption();
-                $result = $caption->CJY_RecognizeBytes($captionImg);
+                if($captionImg){
+                    $result = $caption->CJY_RecognizeBytes($captionImg);
+                }
             }else{
                 break;
             }
@@ -123,10 +128,19 @@ class HigoClient{
             $result['status'] = 1;
             return $result;
         }else{
+            $str = 'response is '.$response."\n---------------\n";
+            $str .= "chineseFailed is ".Yii::$app->message['login']['verifyFailed']."\n---------------\n";
+            $str .= 'picId is '.$PicId."\n---------------\n";
+            $str .= "strpos is ".strpos($response, Yii::$app->message['login']['verifyFailed'])."\n-----------\n";
+            file_put_contents('loginError.txt', $str);
             Functions::saveLog(Yii::$app->message['login']['loginFailed'].$response);
-            if(strpos($response, Yii::$app->message['login']['verifyFailed']) !== false){
-                $caption = new \Caption();
-                $caption->CJY_ReportError($PicId);
+            if(strpos($response, Yii::$app->message['login']['verifyFailed'])){
+                try{
+                    $caption = new \Caption();
+                    $caption->CJY_ReportError($PicId);
+                }catch(\Exception $e){
+                    file_put_contents('loginError.txt', "\n".$e.FILE_APPEND);
+                }
                 self::$time++;
                 $result['error'] = Yii::$app->message['login']['verifyFailed'];
                 Functions::saveLog(Yii::$app->message['login']['retryLogin']);
@@ -165,7 +179,7 @@ class HigoClient{
             'credit'
         ];
         if(self::stringExist($string, $arr)){//成功
-            Functions::saveLog(Yii::$app->message['leftInfo']['userInfoGetSuccess']);
+            $showInfo && Functions::saveLog(Yii::$app->message['leftInfo']['userInfoGetSuccess']);
             self::$userName = Functions::InterceptString($string, '{"account":"', '","credit"');    //用户名
             self::$edu = Functions::InterceptString($string, ',"credit":"', '","re_credit"');    //信用额度
             self::$yue = Functions::InterceptString($string, 're_credit":"', '","total_amount');    //信用余额
@@ -186,7 +200,7 @@ class HigoClient{
      *
      * @return bool
      */
-    public static function sscInfo($data = array()){
+    public static function sscInfo($data = array(), $showLog = true){
         $time = 0;
         while($time < 2){
             if(InitService::getSystemStatus() == 1){
@@ -194,7 +208,7 @@ class HigoClient{
                     $data = array('action' => 'ajax');
                 }
                 $response = HttpClient::curl(GenerateUrlService::getOrderList(), $data);
-                if(self::isGetSscInfo($response)){
+                if(self::isGetSscInfo($response,$showLog)){
                     break;
                 }
             }else{
@@ -204,8 +218,10 @@ class HigoClient{
             if($time >= 2){
                 Functions::saveLog(Yii::$app->message['Buy']['nowPrice']);
                 Login::logout();
+                return false;
             }
         }
+        return true;
     }
 
     /**
@@ -213,7 +229,7 @@ class HigoClient{
      *
      * @param $string
      */
-    private static function isGetSscInfo($string){
+    private static function isGetSscInfo($string, $showLog){
         $arr = [
             'integrate',
             'success',
@@ -221,7 +237,7 @@ class HigoClient{
             'changlong'
         ];
         if(self::stringExist($string, $arr)){//成功
-            Functions::saveLog(Yii::$app->message['sscList']['sscListGetSuccess']);
+            $showLog && Functions::saveLog(Yii::$app->message['sscList']['sscListGetSuccess']);
             self::$json = Functions::InterceptString($string, '"integrate":', ',"changlong"');    //赔率json
             if(strlen(self::$json) < 10){
                 Functions::saveLog(Yii::$app->message['Buy']['nowPrice']);
@@ -252,7 +268,7 @@ class HigoClient{
             self::$n_id = Num::insertRecord($numData);
             //存数据库
         }else{  //失败
-            Functions::saveLog(Yii::$app->message['sscList']['sscListGetFailed']);
+            $showLog && Functions::saveLog(Yii::$app->message['sscList']['sscListGetFailed']);
             return false;
         }
         return true;
